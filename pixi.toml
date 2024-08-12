@@ -1,0 +1,24 @@
+[project]
+name = "3D-private"
+version = "0.1.0"
+description = "Add a short description here"
+authors = ["Sébastien Boisgérault <Sebastien.Boisgerault@gmail.com>"]
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[tasks]
+start = "jupyter lab"
+dev = { depends-on = ["start"] }
+
+[dependencies]
+python = ">=3.12.5,<3.13"
+pip = ">=24.2,<25"
+
+[pypi-dependencies]
+numpy = "*"
+matplotlib = "*"
+mpl3d = { git = "https://github.com/rougier/matplotlib-3d" }
+sdf = { git = "https://github.com/fogleman/sdf" }
+jupyterlab = "*"
+jupyterlab-myst = "*"
+meshio = "*"
