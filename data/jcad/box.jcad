@@ -1,0 +1,55 @@
+{
+  "objects": [
+    {
+      "shapeMetadata": {
+        "matrixOfInertia": [
+          [
+            0.0,
+            0.0,
+            0.10416666666666669
+          ],
+          [
+            0.41666666666666674,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.35416666666666674,
+            0.0
+          ]
+        ],
+        "mass": 0.9999999999999998,
+        "centerOfMass": [
+          0.25,
+          0.5,
+          1.0
+        ]
+      },
+      "visible": true,
+      "shape": "Part::Box",
+      "name": "Box 1",
+      "parameters": {
+        "Placement": {
+          "Angle": 0.0,
+          "Position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "Axis": [
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        "Length": 0.5,
+        "Height": 2.0,
+        "Width": 1.0
+      }
+    }
+  ],
+  "options": {},
+  "metadata": {},
+  "outputs": {}
+}
