@@ -18,6 +18,7 @@ numpy = ">=2.1.0,<3"
 matplotlib = ">=3.9.2,<4"
 jupyterlab = ">=4.1.8,<5"
 jupyterlab-myst = ">=2.4.2,<3"
+jupytercad = ">=2.0.2,<3"
 
 [pypi-dependencies]
 mpl3d = { git = "https://github.com/rougier/matplotlib-3d.git" }
