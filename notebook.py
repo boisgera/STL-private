@@ -301,7 +301,7 @@ def __(mo):
 
 
 @app.cell
-def __(Camera, Mesh, glm, meshio, plt):
+def __(Camera, Mesh, glm, meshio, mo, plt):
     def show(
         filename,
         theta=0.0,
@@ -309,7 +309,7 @@ def __(Camera, Mesh, glm, meshio, plt):
         scale=1.0,
         colormap="viridis",
         edgecolors=(0, 0, 0, 0.25),
-        figsize=(6, 5),
+        figsize=(6, 6),
     ):
         fig = plt.figure(figsize=figsize)
         ax = fig.add_axes([0, 0, 1, 1], xlim=[-1, +1], ylim=[-1, +1], aspect=1)
@@ -327,7 +327,7 @@ def __(Camera, Mesh, glm, meshio, plt):
             cmap=plt.get_cmap(colormap),
             edgecolors=edgecolors,
         )
-        return fig
+        return mo.center(fig)
 
 
     show("data/bunny.obj", scale=1.5)
