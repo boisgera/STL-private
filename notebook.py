@@ -442,7 +442,6 @@ def __(box, cylinder, difference, intersection, orient, sphere, union):
         ),
     )
     demo_csg_alt.save("output/demo-csg-alt.stl", step=0.05)
-
     return (demo_csg_alt,)
 
 
@@ -601,7 +600,7 @@ def __(show):
 
 @app.cell
 def __(mo):
-    mo.md("## Annex")
+    mo.md("""## Annex""")
     return
 
 
