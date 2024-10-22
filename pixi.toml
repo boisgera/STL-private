@@ -1,13 +1,10 @@
 [project]
 authors = ["Sébastien Boisgérault <Sebastien.Boisgerault@gmail.com>"]
 channels = ["conda-forge"]
-description = "Add a short description here"
-name = "3D-private"
+description = "STL"
+name = "STL-private"
 platforms = ["linux-64"]
 version = "0.1.0"
-
-[tasks]
-start = "jupyter lab"
 
 [dependencies]
 python = ">=3.12.5,<4"
@@ -19,7 +16,11 @@ matplotlib = ">=3.9.2,<4"
 jupyterlab = ">=4.1.8,<5"
 jupyterlab-myst = ">=2.4.2,<3"
 jupytercad = ">=2.0.2,<3"
+marimo = ">=0.9.11,<0.10"
 
 [pypi-dependencies]
 mpl3d = { git = "https://github.com/rougier/matplotlib-3d.git" }
 sdf = { git = "https://github.com/fogleman/sdf.git" }
+
+[tasks]
+dev = "marimo edit notebook.py"
