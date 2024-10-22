@@ -8,56 +8,18 @@ app = marimo.App()
 def __(mo):
     mo.md(
         r"""
-        # STL & Stereolithography
+        # STL
 
-        ... or "Standard Triangle Language"
+        "Stereolitography Language"... or "Standard Triangle Language"
         """
     )
     return
 
 
 @app.cell
-def __():
-    # Python Standard Library
-    import json
-
-    # Marimo
-    import marimo as mo
-
-    # Third-Party Librairies
-    import numpy as np
-    import matplotlib.pyplot as plt
-    import mpl3d
-    from mpl3d import glm
-    from mpl3d.mesh import Mesh
-    from mpl3d.camera import Camera
-    import meshio
-    import sdf
-    from sdf import sphere, box, cylinder
-    from sdf import X, Y, Z
-    from sdf import intersection, union, orient, difference
-    return (
-        Camera,
-        Mesh,
-        X,
-        Y,
-        Z,
-        box,
-        cylinder,
-        difference,
-        glm,
-        intersection,
-        json,
-        meshio,
-        mo,
-        mpl3d,
-        np,
-        orient,
-        plt,
-        sdf,
-        sphere,
-        union,
-    )
+def __(show):
+    show("data/teapot.stl", theta=60.0, phi=30.0, scale=2.0)
+    return
 
 
 @app.cell
@@ -73,7 +35,6 @@ def __(mo):
         - [ ] Cube
         - [ ] (Eroded Cube)
         - [ ] Pyramid
-
         """
     )
     return
@@ -219,27 +180,15 @@ def __(facet, np):
 
 @app.cell
 def __(mo):
-    mo.md(
-        r"""
-        ## Getting Serious
-
-        - Make function (triangles, normals=None, name=None) -> STL string
-        - **TODO** Make STL (text) tokenizer + parser into triangles / normals array
-        - **TODO** Make "condition number" + "strict normal checker" (optionally rewriter)
-        - Obj to STL (**TODO**: make normals (opt.) + points + indices -> normals, triangles instead
-        """
-    )
-    return
-
-
-@app.cell
-def __(mo):
     mo.md(r"""## NumPy to STL""")
     return
 
 
 @app.cell
 def __(np):
+    # triangles -> faces or facets?
+    # make a file-based output?
+
     def make_STL(triangles, normals=None, name=''):
         triangles = np.array(triangles, dtype=np.float32)
         if normals is None:
@@ -340,7 +289,6 @@ def __(mo):
           - [ ] vertex rule (every triangle should share two vertices with the adjacent triangles)
           - [ ] All positive octant rule
           - [ ] Triangle sorting rule (ascending z)
-
         """
     )
     return
@@ -361,7 +309,7 @@ def __(Camera, Mesh, glm, meshio, plt):
         scale=1.0,
         colormap="viridis",
         edgecolors=(0, 0, 0, 0.25),
-        figsize=(6, 6),
+        figsize=(6, 5),
     ):
         fig = plt.figure(figsize=figsize)
         ax = fig.add_axes([0, 0, 1, 1], xlim=[-1, +1], ylim=[-1, +1], aspect=1)
@@ -388,7 +336,7 @@ def __(Camera, Mesh, glm, meshio, plt):
 
 @app.cell
 def __(mo):
-    mo.md("## OBJ Format")
+    mo.md("""## OBJ Format""")
     return
 
 
@@ -455,7 +403,7 @@ def __(OBJ_to_STL, show):
 
 @app.cell
 def __(meshio):
-    mesh = meshio.read("output/bunny.stl") # warning: no blank line!!!
+    mesh = meshio.read("output/bunny.stl") # ⚠️ no blank line in STL for meshio!
     return (mesh,)
 
 
@@ -481,16 +429,7 @@ def __(show):
 
 
 @app.cell
-def __(
-    box,
-    cylinder,
-    difference,
-    intersection,
-    orient,
-    show,
-    sphere,
-    union,
-):
+def __(box, cylinder, difference, intersection, orient, sphere, union):
     demo_csg_alt = difference(
         intersection(
             sphere(1),
@@ -503,8 +442,14 @@ def __(
         ),
     )
     demo_csg_alt.save("output/demo-csg-alt.stl", step=0.05)
-    show("output/demo-csg-alt.stl", theta=45.0, phi=45.0, scale=1.0)
+
     return (demo_csg_alt,)
+
+
+@app.cell
+def __(show):
+    show("output/demo-csg-alt.stl", theta=45.0, phi=45.0, scale=1.0)
+    return
 
 
 @app.cell
@@ -520,6 +465,7 @@ def __(mo):
         - [ ] Check that the lenth of the binary data checks out with this count and the spec
         - [ ] Read the numeric data as a `(n, 12)` array of `float32`
         - [ ] Extract from this array the `normals` (shape `(n, 3)`) and `vertices` (shape `(n, 3, 3)`) arrays.
+        - [ ] At the end, measure the compression ratio offered by binary?
         """
     )
     return
@@ -532,84 +478,34 @@ def __(show):
 
 
 @app.cell
-def __():
-    with open("output/demo-csg.stl", mode="rb") as _file:
-        print(_file.read(200))
-    return
-
-
-@app.cell
-def __():
-    with open("output/demo-csg.stl", mode="rb") as _file:
-        _header = _file.read(80)
-    _header == 80 * bytes([0])
-    return
-
-
-@app.cell
-def __(np):
-    with open("output/demo-csg.stl", mode="rb") as _file:
-        n = np.fromfile(_file, dtype=np.uint32, count=1, offset=80)
-    n[0]
-    return (n,)
-
-
-@app.cell
-def __(np):
-    with open("output/demo-csg.stl", mode="rb") as _file:
-        _header = _file.read(80)
-        n_1 = np.fromfile(_file, dtype=np.uint32, count=1)[0]
-    print(n_1)
-    return (n_1,)
-
-
-@app.cell
-def __(n_1):
-    with open('out.stl', mode='rb') as _file:
-        data = _file.read()
-        print(len(data))
-        print(80 + 4 + n_1 * (4 * 4 * 3 + 2))
-    return (data,)
-
-
-@app.cell
-def __(np):
-    with open("output/demo-csg.stl", mode="rb") as _file:
-        _header = _file.read(80)
-        n_2 = np.fromfile(_file, dtype=np.uint32, count=1)[0]
-        data_1 = np.empty((n_2, 4 * 3), dtype=np.float32)
-        for _i in range(n_2):
-            data_1[_i] = np.fromfile(_file, dtype=np.float32, count=12)
-            _ = _file.read(2)
-    return data_1, n_2
-
-
-@app.cell
-def __(data_1, np):
-    _normals = data_1[:, 0::4]
-    _x = data_1[:, 1::4]
-    _y = data_1[:, 2::4]
-    _z = data_1[:, 3::4]
-    vertices_4 = np.stack((_x, _y, _z), axis=1)
-    np.shape(vertices_4)
-    return (vertices_4,)
-
-
-@app.cell
-def __(plt, vertices_4):
-    _fig = plt.figure()
-    for vs in vertices_4[:100]:
-        _x = [v[0] for v in vs]
-        _y = [v[1] for v in vs]
-        _x.append(_x[0])
-        _y.append(_y[0])
-        plt.plot(_x, _y)
-    return (vs,)
-
-
-@app.cell
 def __(mo):
-    mo.md("TODO: STL binary to STL text; use it on teapot to get a reference text file (dragon is already in binary). Also ask for the opposite? (text to binary)")
+    mo.md("""TODO: STL binary to STL text; use it on teapot to get a reference text file (dragon is already in binary). Also ask for the opposite? (text to binary)""")
+    return
+
+
+@app.cell
+def __(make_STL, np):
+    def STL_binary_to_text(stl_filename_in, stl_filename_out):
+        with open(stl_filename_in, mode="rb") as file:
+            _ = file.read(80)
+            n = np.fromfile(file, dtype=np.uint32, count=1)[0]
+            print(n)
+            normals = []
+            faces = []
+            for i in range(n):
+                normals.append(np.fromfile(file, dtype=np.float32, count=3))
+                faces.append(np.fromfile(file, dtype=np.float32, count=9).reshape(3, 3))
+                _ = file.read(2)
+        stl_text = make_STL(faces, normals)
+        with open(stl_filename_out, mode="wt", encoding="utf-8") as file:
+            file.write(stl_text)
+    return (STL_binary_to_text,)
+
+
+@app.cell
+def __(STL_binary_to_text, show):
+    STL_binary_to_text("data/dragon.stl", "output/dragon.stl")
+    show("output/dragon.stl", theta=75.0, phi=-20.0, scale=1.7)
     return
 
 
@@ -704,13 +600,59 @@ def __(show):
 
 
 @app.cell
-def __():
+def __(mo):
+    mo.md("## Annex")
     return
 
 
 @app.cell
 def __():
+    ### Dependencies
     return
+
+
+@app.cell
+def __():
+    # Python Standard Library
+    import json
+
+    # Marimo
+    import marimo as mo
+
+    # Third-Party Librairies
+    import numpy as np; np.seterr(over="ignore")
+    import matplotlib.pyplot as plt
+    import mpl3d
+    from mpl3d import glm
+    from mpl3d.mesh import Mesh
+    from mpl3d.camera import Camera
+    import meshio
+    import sdf
+    from sdf import sphere, box, cylinder
+    from sdf import X, Y, Z
+    from sdf import intersection, union, orient, difference
+    return (
+        Camera,
+        Mesh,
+        X,
+        Y,
+        Z,
+        box,
+        cylinder,
+        difference,
+        glm,
+        intersection,
+        json,
+        meshio,
+        mo,
+        mpl3d,
+        np,
+        orient,
+        plt,
+        sdf,
+        sphere,
+        union,
+    )
 
 
 if __name__ == "__main__":
