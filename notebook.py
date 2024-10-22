@@ -327,7 +327,7 @@ def __(Camera, Mesh, glm, meshio, plt):
             cmap=plt.get_cmap(colormap),
             edgecolors=edgecolors,
         )
-        plt.show()  # return fig or ax instead?
+        return fig
 
 
     show("data/bunny.obj", scale=1.5)
@@ -399,12 +399,6 @@ def __(OBJ_to_STL, show):
     OBJ_to_STL("data/bunny.obj", "output/bunny.stl")
     show("output/bunny.stl", scale=1.5)
     return
-
-
-@app.cell
-def __(meshio):
-    mesh = meshio.read("output/bunny.stl") # ⚠️ no blank line in STL for meshio!
-    return (mesh,)
 
 
 @app.cell
