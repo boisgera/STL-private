@@ -39,12 +39,10 @@ def __(mo):
         r"""
         ## Simple STL files (Discovery)
 
-        **TODO : cube & "eroded" cube.
 
         - [ ] Facet
         - [ ] Simplex
         - [ ] Cube
-        - [ ] (Eroded Cube)
         - [ ] Pyramid
         """
     )
@@ -250,17 +248,22 @@ def __(mo):
 @app.cell
 def __(np):
     STL_KEYWORDS = [
-        'solid', 'endsolid', 
-        'facet', 'endfacet', 
-        'outer', 'loop', 'endloop', 
-        'vertex'
+        "solid",
+        "endsolid",
+        "facet",
+        "endfacet",
+        "outer",
+        "loop",
+        "endloop",
+        "vertex",
     ]
+
 
     def tokenize(STL_text):
         raw_tokens = STL_text.split()
         tokens = []
         for token in raw_tokens:
-            try: # is the token a number?
+            try:  # is the token a number?
                 tokens.append(np.float32(token))
             except ValueError:
                 if token in STL_KEYWORDS:
@@ -307,9 +310,17 @@ def __(mo):
         Make a diagnostic dataframe that checks for:
 
           - [ ] orientation rule (violations to the rhs rule)
-          - [ ] vertex rule (every triangle should share two vertices with the adjacent triangles)
+          - [ ] shared edge rule (every edge should be shared exactly by two triangles)
           - [ ] All positive octant rule
           - [ ] Triangle sorting rule (ascending z)
+
+        TODO :
+
+          - external links and/or explanation of the rules ?
+
+          - go from exact check to % of success (or error) ... + "location" (indices) ?
+
+          - state of the reference files fare?
         """
     )
     return
@@ -337,7 +348,7 @@ def __(check_orientation):
 
 @app.cell
 def __(facets_from_STL):
-    def check_vertex(filename):
+    def check_shared_edges(filename):
         triangles, _ = facets_from_STL(filename)
         count = {}
         for t in triangles:
@@ -349,27 +360,27 @@ def __(facets_from_STL):
                 edge = tuple(sorted((p1, p2)))
                 count[edge] = count.get(edge, 0) + 1
         return set(count.values()) == {2}
-    return (check_vertex,)
+    return (check_shared_edges,)
 
 
 @app.cell
-def __(check_vertex):
-    check_vertex("data/teapot.stl")
+def __(check_shared_edges):
+    check_shared_edges("data/teapot.stl")
     return
 
 
 @app.cell
 def __(facets_from_STL, np):
-    def check_positive_octant(filename):
+    def check_octant(filename):
         triangles, normals = facets_from_STL(filename)
         coords = np.reshape(triangles, (-1,))
         return all(coords>=0.0)
-    return (check_positive_octant,)
+    return (check_octant,)
 
 
 @app.cell
-def __(check_positive_octant):
-    check_positive_octant("data/teapot.stl")
+def __(check_octant):
+    check_octant("data/teapot.stl")
     return
 
 
@@ -711,13 +722,19 @@ def __():
     import marimo as mo
 
     # Third-Party Librairies
-    import numpy as np; np.seterr(over="ignore")
+    import numpy as np
+
+
     import matplotlib.pyplot as plt
     import mpl3d
     from mpl3d import glm
     from mpl3d.mesh import Mesh
     from mpl3d.camera import Camera
+
     import meshio
+
+    np.seterr(over="ignore")  # 🩹 deal with a meshio false warning
+
     import sdf
     from sdf import sphere, box, cylinder
     from sdf import X, Y, Z
@@ -744,6 +761,87 @@ def __():
         sphere,
         union,
     )
+
+
+@app.cell
+def __(mo):
+    mo.md("""## Sandbox""")
+    return
+
+
+@app.cell
+def __(make_STL, np):
+    cube_triangles = np.array(
+        [
+            [[0.0, 0.0, 0.0], [0.0, 1.0, 0.0], [1.0, 0.0, 0.0]],
+            [[1.0, 1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]],
+            [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]],
+            [[1.0, 0.0, 0.0], [1.0, 1.0, 0.0], [1.0, 0.0, 1.0]],
+            [[0.0, 1.0, 0.0], [0.0, 1.0, 1.0], [1.0, 1.0, 0.0]],
+            [[0.0, 0.0, 0.0], [0.0, 0.0, 1.0], [0.0, 1.0, 0.0]],
+            [[1.0, 0.0, 1.0], [0.0, 0.0, 1.0], [1.0, 0.0, 0.0]],
+            [[1.0, 1.0, 1.0], [1.0, 0.0, 1.0], [1.0, 1.0, 0.0]],
+            [[1.0, 1.0, 1.0], [1.0, 1.0, 0.0], [0.0, 1.0, 1.0]],
+            [[0.0, 1.0, 1.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+            [[0.0, 0.0, 1.0], [1.0, 0.0, 1.0], [0.0, 1.0, 1.0]],
+            [[1.0, 1.0, 1.0], [0.0, 1.0, 1.0], [1.0, 0.0, 1.0]],
+        ],
+        dtype=np.float32,
+    )
+
+    cube_normals = np.array(
+        [
+            [+0.0, +0.0, -1.0],
+            [+0.0, +0.0, -1.0],
+            [+0.0, -1.0, +0.0],
+            [+1.0, +0.0, +0.0],
+            [+0.0, +1.0, +0.0],
+            [-1.0, +0.0, +0.0],
+            [+0.0, -1.0, +0.0],
+            [+1.0, +0.0, +0.0],
+            [+0.0, +1.0, +0.0],
+            [-1.0, +0.0, +0.0],
+            [+0.0, +0.0, +1.0],
+            [+0.0, +0.0, +1.0],
+        ],
+        dtype=np.float32,
+    )
+
+    cube = "output/cube.stl"
+
+    with open(cube, mode="tw", encoding="utf-8") as _file:
+        _file.write(make_STL(cube_triangles, cube_normals))
+    return cube, cube_normals, cube_triangles
+
+
+@app.cell
+def __(cube, show):
+    show(cube, phi=30.0, theta=60.0, scale=1.0)
+    return
+
+
+@app.cell
+def __(check_orientation, cube):
+    check_orientation(cube)
+    return
+
+
+@app.cell
+def __(check_shared_edges, cube):
+    check_shared_edges(cube)
+    return
+
+
+@app.cell
+def __(check_octant, cube):
+    check_octant(cube)
+    return
+
+
+@app.cell
+def __(check_ascending, cube):
+    check_ascending(cube)
+    return
 
 
 if __name__ == "__main__":
