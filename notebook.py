@@ -1,16 +1,27 @@
 import marimo
 
-__generated_with = "0.9.11"
+__generated_with = "0.9.12"
 app = marimo.App()
+
+
+@app.cell
+def __():
+    # STL Project
+    return
 
 
 @app.cell
 def __(mo):
     mo.md(
         r"""
-        # STL
+        ## About STL
 
-        "Stereolitography Language"... or "Standard Triangle Language"
+        STL is a simple file format to describe 3D objects as a collection of triangles. 
+
+        The acronym stands for "Simple Triangle Language", "Standard Tesselation Language"[^1] or "STereoLitography"[^2].
+
+        [^1]: Tesselation is the covering of a surface by elementary shapes.
+        [^2]: STL was invented for – and is still widely used -- for 3D printing.
         """
     )
     return
@@ -278,6 +289,16 @@ def __(np):
 
 
 @app.cell
+def __(parse, tokenize):
+    def facets_from_STL(filename):
+        with open(filename, mode="tr", encoding="utf_8") as file:
+            text = file.read()
+        tokens = tokenize(text)
+        return parse(tokens)
+    return (facets_from_STL,)
+
+
+@app.cell
 def __(mo):
     mo.md(
         r"""
@@ -291,6 +312,80 @@ def __(mo):
           - [ ] Triangle sorting rule (ascending z)
         """
     )
+    return
+
+
+@app.cell
+def __(facets_from_STL, np):
+    def check_orientation(filename, tolerance=1e-4):
+        triangles, normals = facets_from_STL(filename)
+        d1 = triangles[:, 1, :] - triangles[:, 0, :]
+        d2 = triangles[:, 2, :] - triangles[:, 1, :]
+        vector_product = np.linalg.cross(d1, d2)
+        norms = np.linalg.norm(vector_product, axis=1)
+        computed_normals = np.diag(1 / norms) @ vector_product
+        e = np.linalg.vector_norm(normals - computed_normals, axis=1)
+        return all(e <= tolerance)
+    return (check_orientation,)
+
+
+@app.cell
+def __(check_orientation):
+    check_orientation("data/teapot.stl")
+    return
+
+
+@app.cell
+def __(facets_from_STL):
+    def check_vertex(filename):
+        triangles, _ = facets_from_STL(filename)
+        count = {}
+        for t in triangles:
+            edges = [[t[0], t[1]], [t[1], t[2]], [t[2], t[0]]]
+            for edge in edges:
+                p1, p2 = edge
+                p1 = tuple([float(x) for x in p1])
+                p2 = tuple([float(x) for x in p2])
+                edge = tuple(sorted((p1, p2)))
+                count[edge] = count.get(edge, 0) + 1
+        return set(count.values()) == {2}
+    return (check_vertex,)
+
+
+@app.cell
+def __(check_vertex):
+    check_vertex("data/teapot.stl")
+    return
+
+
+@app.cell
+def __(facets_from_STL, np):
+    def check_positive_octant(filename):
+        triangles, normals = facets_from_STL(filename)
+        coords = np.reshape(triangles, (-1,))
+        return all(coords>=0.0)
+    return (check_positive_octant,)
+
+
+@app.cell
+def __(check_positive_octant):
+    check_positive_octant("data/teapot.stl")
+    return
+
+
+@app.cell
+def __(facets_from_STL, np):
+    def check_ascending(filename):
+        triangles, normals = facets_from_STL(filename)
+        z = triangles.mean(axis=1)[:,-1]
+        I = z.argsort()
+        return np.array_equal(triangles, triangles[I])
+    return (check_ascending,)
+
+
+@app.cell
+def __(check_ascending):
+    check_ascending("data/teapot.stl")
     return
 
 
@@ -328,10 +423,13 @@ def __(Camera, Mesh, glm, meshio, mo, plt):
             edgecolors=edgecolors,
         )
         return mo.center(fig)
-
-
-    show("data/bunny.obj", scale=1.5)
     return (show,)
+
+
+@app.cell
+def __(show):
+    show("data/bunny.obj", scale=1.5)
+    return
 
 
 @app.cell
