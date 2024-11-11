@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.9.12"
+__generated_with = "0.9.11"
 app = marimo.App()
 
 
@@ -16,189 +16,144 @@ def __(mo):
         r"""
         ## About STL
 
-        STL is a simple file format to describe 3D objects as a collection of triangles. 
+        STL is a simple file format which describes 3D objects as a collection of triangles.
+        The acronym STL stands for "Simple Triangle Language", "Standard Tesselation Language" or "STereoLitography"[^1].
 
-        The acronym stands for "Simple Triangle Language", "Standard Tesselation Language"[^1] or "STereoLitography"[^2].
-
-        [^1]: Tesselation is the covering of a surface by elementary shapes.
-        [^2]: STL was invented for – and is still widely used -- for 3D printing.
+        [^1]: STL was invented for – and is still widely used – for 3D printing.
         """
     )
     return
 
 
 @app.cell
-def __(show):
-    show("data/teapot.stl", theta=60.0, phi=30.0, scale=2.0)
+def __(mo, show):
+    mo.show_code(show("data/teapot.stl", theta=45.0, phi=30.0, scale=2))
     return
 
 
 @app.cell
 def __(mo):
+    with open("data/teapot.stl", mode="rt", encoding="utf-8") as _file:
+        teapot_stl = _file.read()
+
+    teapot_stl_excerpt = teapot_stl[:723] + "..." + teapot_stl[-379:]
+
     mo.md(
-        r"""
-        ## Simple STL files (Discovery)
+        f"""
+    ## STL ASCII Format
 
+    The `data/teapot.stl` file provides an example of the STL ASCII format. It is quite large (more than 60000 lines) and looks like that:
+    """
+    +
+    f"""```
+    {teapot_stl_excerpt}
+    ```
+    """
+    +
 
-        - [ ] Facet
-        - [ ] Simplex
-        - [ ] Cube
-        - [ ] Pyramid
-        """
+    """
+    """
     )
+    return teapot_stl, teapot_stl_excerpt
+
+
+@app.cell
+def __(mo):
+    mo.md(f"""
+
+      - Study the [{mo.icon("mdi:wikipedia")} STL (file format)](https://en.wikipedia.org/wiki/STL_(file_format)) page (or other online references) to become familiar the format.
+
+      - Create a STL ASCII file `"data/cube.stl"` that represents a cube of unit length  
+        (💡 in the simplest version, you will need 12 different facets).
+
+      - Display the result with the function `show` (make sure to check different angles).
+    """)
+    return
+
+
+@app.cell
+def __(mo):
+    mo.md(r"""## STL & NumPy""")
+    return
+
+
+@app.cell
+def __(mo):
+    mo.md(rf"""
+
+    ### NumPy to STL
+
+    Implement the following function:
+
+    ```python
+    def make_STL(triangles, normals=None, name=""):
+        pass # 🚧 TODO!
+    ```
+
+    #### Parameters
+
+      - `triangles` is a NumPy array of shape `(n, 3, 3)` and data type `np.float32`,
+         which represents a sequence of `n` triangles (`triangles[i, j, k]` represents 
+         is the `k`th coordinate of the `j`th point of the `i`th triangle)
+
+      - `normals` is a NumPy array of shape `(n, 3)` and data type `np.float32`;
+         `normals[i]` represents the outer unit normal to the `i`th facet.
+         If `normals` is not specified, it should be computed from `triangles` using the 
+         [{mo.icon("mdi:wikipedia")} right-hand rule](https://en.wikipedia.org/wiki/Right-hand_rule).
+
+      - `name` is the (optional) solid name embedded in the STL ASCII file.
+
+    #### Returns
+
+      - The STL ASCII description of the solid as a string.
+
+    #### Example
+
+    Given the two triangles that make up a flat square:
+
+    ```python
+
+    square_triangles = np.array(
+        [
+            [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]],
+            [[1.0, 1.0, 0.0], [0.0, 1.0, 0.0], [1.0, 0.0, 0.0]],
+        ],
+        dtype=np.float32,
+    )
+    ```
+
+    then printing `make_STL(square_triangles, name="square")` yields
+    ```
+    solid square
+      facet normal 0.0 0.0 1.0
+        outer loop
+          vertex 0.0 0.0 0.0
+          vertex 1.0 0.0 0.0
+          vertex 0.0 1.0 0.0
+        endloop
+      endfacet
+      facet normal 0.0 0.0 1.0
+        outer loop
+          vertex 1.0 1.0 0.0
+          vertex 0.0 1.0 0.0
+          vertex 1.0 0.0 0.0
+        endloop
+      endfacet
+    endsolid square
+    ```
+
+    """)
     return
 
 
 @app.cell
 def __():
-    facet = """
-    facet normal {n[0]} {n[1]} {n[2]}
-        outer loop
-            vertex {t[0][0]} {t[0][1]} {t[0][2]}
-            vertex {t[1][0]} {t[1][1]} {t[1][2]}
-            vertex {t[2][0]} {t[2][1]} {t[2][2]}
-        endloop
-    endfacet
-    """
-    return (facet,)
-
-
-@app.cell
-def __(np):
-    normal = np.array([1.0, 1.0, 1.0], dtype=np.float32)
-    normal = normal / np.linalg.norm(normal)
-    normal
-    return (normal,)
-
-
-@app.cell
-def __(np):
-    triangle = np.array([
-        [1.0, 0.0, 0.0], 
-        [0.0, 1.0, 0.0], 
-        [0.0, 0.0, 1.0],
-    ], dtype=np.float32)
-    return (triangle,)
-
-
-@app.cell
-def __(facet, normal, triangle):
-    print(facet.format(n=normal, t=triangle))
-    return
-
-
-@app.cell
-def __(facet, normal, triangle):
-    name = "simplex"
-
-    solid = f"""
-    solid {name}
-
-    {facet.format(n=normal, t=triangle)}
-
-    endsolid {name}
-    """
-
-    print(solid)
-    return name, solid
-
-
-@app.cell
-def __(name, solid):
-    with open(f'output/{name}.stl', mode='wt') as _file:
-        _file.write(solid)
-    return
-
-
-@app.cell
-def __(facet, normal, triangle):
-    name_1 = 'simplex'
-    solid_1 = f'\nsolid {name_1}\n\n{facet.format(n=-normal, t=triangle)}\n\nendsolid {name_1}\n'
-    print(solid_1)
-    return name_1, solid_1
-
-
-@app.cell
-def __(solid_1):
-    name_2 = 'simplex-opposite-normal'
-    with open(f'output/{name_2}.stl', mode='wt') as _file:
-        _file.write(solid_1)
-    return (name_2,)
-
-
-@app.cell
-def __(facet, np, triangle):
-    normal_1 = np.array([12.0, -56.0, 456.0], dtype=np.float32)
-    name_3 = 'simplex'
-    solid_2 = f'\nsolid {name_3}\n\n{facet.format(n=normal_1, t=triangle)}\n\nendsolid {name_3}\n'
-    print(solid_2)
-    name_3 = 'simplex-random-normal'
-    with open(f'output/{name_3}.stl', mode='wt') as _file:
-        _file.write(solid_2)
-    return name_3, normal_1, solid_2
-
-
-@app.cell
-def __(facet, np, triangle):
-    normal_2 = np.array([0.0, 0.0, 0.0], dtype=np.float32)
-    name_4 = 'simplex'
-    solid_3 = f'\nsolid {name_4}\n\n{facet.format(n=normal_2, t=triangle)}\n\nendsolid {name_4}\n'
-    print(solid_3)
-    name_4 = 'simplex-zero-normal'
-    with open(f'output/{name_4}.stl', mode='wt') as _file:
-        _file.write(solid_3)
-    return name_4, normal_2, solid_3
-
-
-@app.cell
-def __(mo):
-    mo.md(
-        r"""
-        **TODO** warning about the behavior of the readers wrt normals and outer/inner representation.
-        Inner may be displayed as outer or not at all and the normal may not be used.
-
-        AFAICT the GitHub viewer will:
-
-        - discard the normal info when it comes to determine the normal (use orientation instead)
-
-        - only display the outer face
-
-        - BUT, display this face is black when the normal in the file does not match its computation.
-
-        YMML
-        """
-    )
-    return
-
-
-@app.cell
-def __(facet, np):
-    normal_3 = np.array([1.0, 1.0, 1.0], dtype=np.float32)
-    normal_3 = normal_3 / np.linalg.norm(normal_3)
-    triangle_1 = np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]], dtype=np.float32)
-    R = np.array([[0.0, -1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]], dtype=np.float32)
-    with open('output/pyramid.stl', mode='tw') as _file:
-        _file.write('solid pyramid\n\n')
-        for _i in [0, 1, 2, 3]:
-            _file.write(facet.format(n=normal_3, t=triangle_1))
-            normal_3 = R @ normal_3
-            triangle_1 = triangle_1 @ R.T
-        _file.write('endsolid pyramid\n')
-    return R, normal_3, triangle_1
-
-
-@app.cell
-def __(mo):
-    mo.md(r"""## NumPy to STL""")
     return
 
 
 @app.cell
 def __(np):
-    # triangles -> faces or facets?
-    # make a file-based output?
-
-    def make_STL(triangles, normals=None, name=''):
+    def make_STL(triangles, normals=None, name=None):
         triangles = np.array(triangles, dtype=np.float32)
         if normals is None:
             d1 = triangles[:, 1, :] - triangles[:, 0, :]
@@ -209,39 +164,63 @@ def __(np):
         parts = []
         parts.append(f"solid {name}\n")
         for t, n in zip(triangles, normals):
-            parts.append(f"""facet normal {n[0]} {n[1]} {n[2]}
-            outer loop
-                vertex {t[0][0]} {t[0][1]} {t[0][2]}
-                vertex {t[1][0]} {t[1][1]} {t[1][2]}
-                vertex {t[2][0]} {t[2][1]} {t[2][2]}
-            endloop
-        endfacet
-        """)
+            parts.append(
+    f"""  facet normal {n[0]} {n[1]} {n[2]}
+        outer loop
+          vertex {t[0][0]} {t[0][1]} {t[0][2]}
+          vertex {t[1][0]} {t[1][1]} {t[1][2]}
+          vertex {t[2][0]} {t[2][1]} {t[2][2]}
+        endloop
+      endfacet
+    """)
         parts.append(f"endsolid {name}\n")
         return "".join(parts)
     return (make_STL,)
 
 
 @app.cell
-def __(make_STL, np):
-    _normals = np.array([1.0, 1.0, 1.0], dtype=np.float32)
-    _normals = _normals / np.linalg.norm(_normals)
-    _normals = np.array([_normals], dtype=np.float32)
-    triangles = np.array([[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]], dtype=np.float32)
-    out = make_STL(triangles, _normals, name='simplex')
-    print(out)
-    return out, triangles
-
-
-@app.cell
-def __(make_STL, triangles):
-    make_STL(triangles)
-    return
-
-
-@app.cell
 def __(mo):
-    mo.md(r"""## STL to NumPy""")
+    mo.md(
+        """
+        ### STL to NumPy
+
+        Implement a `tokenize` function
+
+
+        ```python
+        def tokenize(stl):
+            pass # 🚧 TODO!
+        ```
+
+        that is consistent with the following documentation:
+
+
+        #### Parameters
+
+          - `stl`: a Python string that represents a STL ASCII model.
+
+        #### Returns
+
+          - `tokens`: a list of STL keywords (`solid`, `facet`, etc.) and `np.float32` numbers.
+
+        #### Example
+
+        For the ASCII representation the square `data/square.stl`, printing the tokens with
+
+        ```python
+        with open("data/square.stl", mode="rt", encoding="us-ascii") as square_file:
+            square_stl = square_file.read()
+        tokens = tokenize(square_stl)
+        print(tokens)
+        ```
+
+        yields
+
+        ```python
+        ['solid', 'square', 'facet', 'normal', np.float32(0.0), np.float32(0.0), np.float32(1.0), 'outer', 'loop', 'vertex', np.float32(0.0), np.float32(0.0), np.float32(0.0), 'vertex', np.float32(1.0), np.float32(0.0), np.float32(0.0), 'vertex', np.float32(0.0), np.float32(1.0), np.float32(0.0), 'endloop', 'endfacet', 'facet', 'normal', np.float32(0.0), np.float32(0.0), np.float32(1.0), 'outer', 'loop', 'vertex', np.float32(1.0), np.float32(1.0), np.float32(0.0), 'vertex', np.float32(0.0), np.float32(1.0), np.float32(0.0), 'vertex', np.float32(1.0), np.float32(0.0), np.float32(0.0), 'endloop', 'endfacet', 'endsolid', 'square']
+        ```
+        """
+    )
     return
 
 
@@ -266,18 +245,84 @@ def __(np):
             try:  # is the token a number?
                 tokens.append(np.float32(token))
             except ValueError:
-                if token in STL_KEYWORDS:
-                    tokens.append(token)
+                tokens.append(token)
         return tokens
     return STL_KEYWORDS, tokenize
 
 
 @app.cell
+def __(mo):
+    mo.md(
+        """
+        Implement a `parse` function
+
+
+        ```python
+        def parse(tokens):
+            pass # 🚧 TODO!
+        ```
+
+        that is consistent with the following documentation:
+
+
+        #### Parameters
+
+          - `tokens`: a list of tokens
+
+        #### Returns
+
+        A `triangles, normals, name` triple where
+
+          - `triangles`: a `(n, 3, 3)` NumPy array with data type `np.float32`,
+
+          - `normals`: a `(n, 3)` NumPy array with data type `np.float32`,
+
+          - `name`: a Python string.
+
+        #### Example
+
+        For the ASCII representation `square_stl` of the square,
+        tokenizing then parsing
+
+        ```python
+        with open("data/square.stl", mode="rt", encoding="us-ascii") as square_file:
+            square_stl = square_file.read()
+        tokens = tokenize(square_stl)
+        triangles, normals, name = parse(tokens)
+        print(repr(triangles))
+        print(repr(normals))
+        print(repr(name))
+        ```
+
+        yields
+
+        ```python
+        array([[[0., 0., 0.],
+                [1., 0., 0.],
+                [0., 1., 0.]],
+
+               [[1., 1., 0.],
+                [0., 1., 0.],
+                [1., 0., 0.]]], dtype=float32)
+        array([[0., 0., 1.],
+               [0., 0., 1.]], dtype=float32)
+        'square'
+        ```
+        """
+    )
+    return
+
+
+@app.cell
 def __(np):
     def parse(tokens):
+        name = ""
+        if tokens[2] == "facet":
+            name = tokens[1]
+            del tokens[1]
         normals = []
         for i, token in enumerate(tokens):
-            if token == "facet":
+            if token == "normal":
                 normals.append(np.array(tokens[i+1:i+4]))
         triangles = []
         for i, token in enumerate(tokens):
@@ -287,56 +332,72 @@ def __(np):
                 triangle.append(np.array(tokens[i+6:i+9]))
                 triangle.append(np.array(tokens[i+10:i+13]))
                 triangles.append(np.array(triangle))
-        return np.array(triangles), np.array(normals)
+        return np.array(triangles), np.array(normals), name
     return (parse,)
 
 
 @app.cell
 def __(parse, tokenize):
-    def facets_from_STL(filename):
-        with open(filename, mode="tr", encoding="utf_8") as file:
+    def from_STL(filename):
+        with open(filename, mode="tr", encoding="us_ascii") as file:
             text = file.read()
         tokens = tokenize(text)
         return parse(tokens)
-    return (facets_from_STL,)
+    return (from_STL,)
 
 
 @app.cell
 def __(mo):
     mo.md(
-        r"""
-        ## Diagnostics
+        rf"""
+    ## Rules & Diagnostics
 
-        Make a diagnostic dataframe that checks for:
 
-          - [ ] orientation rule (violations to the rhs rule)
-          - [ ] shared edge rule (every edge should be shared exactly by two triangles)
-          - [ ] All positive octant rule
-          - [ ] Triangle sorting rule (ascending z)
 
-        TODO :
+        Make diagnostic functions that check whether a STL model satisfies the following rules
 
-          - external links and/or explanation of the rules ?
+          - **Positive octant rule.** All vertex coordinates are non-negative.
 
-          - go from exact check to % of success (or error) ... + "location" (indices) ?
+          - **Orientation rule.** All normals are (approximately) unit vectors and follow the [{mo.icon("mdi:wikipedia")} right-hand rule](https://en.wikipedia.org/wiki/Right-hand_rule).
+        
+          - **Shared edge rule.** Each triangle edge appears exactly twice.
 
-          - state of the reference files fare?
-        """
+          - **Ascending rule.** the z-coordinates of (the barycenter of) each triangle are a non-decreasing sequence.
+
+    When the rule is broken, make sure to display some sensible quantitative measure of the violation (in %).
+
+    For the record, the `data/teapot.STL` file:
+
+      - does not obey the positive octant rule,
+      - almost obeys the orientation rule, 
+      - obeys the shared edge rule,
+      - does not obey the ascending rule.
+
+    Check that your `data/cube.stl` file does follow all these rules, or modify it accordingly!
+
+    """
     )
     return
 
 
 @app.cell
-def __(facets_from_STL, np):
-    def check_orientation(filename, tolerance=1e-4):
-        triangles, normals = facets_from_STL(filename)
+def __(from_STL, np):
+    def check_orientation(filename, verbose=True, tolerance=1e-4):
+        triangles, normals, _ = from_STL(filename)
         d1 = triangles[:, 1, :] - triangles[:, 0, :]
         d2 = triangles[:, 2, :] - triangles[:, 1, :]
         vector_product = np.linalg.cross(d1, d2)
         norms = np.linalg.norm(vector_product, axis=1)
         computed_normals = np.diag(1 / norms) @ vector_product
         e = np.linalg.vector_norm(normals - computed_normals, axis=1)
-        return all(e <= tolerance)
+        status = all(e <= tolerance)
+        if verbose:
+            if status:
+                print("🟢 0% error")
+            else:
+                error = (e > tolerance).sum() / len(e) * 100.0
+                print(f"🔴 {error:.2f}% error")
+        return status
     return (check_orientation,)
 
 
@@ -347,9 +408,9 @@ def __(check_orientation):
 
 
 @app.cell
-def __(facets_from_STL):
-    def check_shared_edges(filename):
-        triangles, _ = facets_from_STL(filename)
+def __(from_STL):
+    def check_shared_edges(filename, verbose=True):
+        triangles, _, _ = from_STL(filename)
         count = {}
         for t in triangles:
             edges = [[t[0], t[1]], [t[1], t[2]], [t[2], t[0]]]
@@ -359,7 +420,14 @@ def __(facets_from_STL):
                 p2 = tuple([float(x) for x in p2])
                 edge = tuple(sorted((p1, p2)))
                 count[edge] = count.get(edge, 0) + 1
-        return set(count.values()) == {2}
+        status = set(count.values()) == {2}
+        if verbose:
+            if status:
+                print("🟢 0% error")
+            else:
+                error = sum([c for c in count.values() if c != 2]) / sum(count.values()) * 100.0
+                print(f"🔴 {error:.2f}% error")
+        return status
     return (check_shared_edges,)
 
 
@@ -370,11 +438,18 @@ def __(check_shared_edges):
 
 
 @app.cell
-def __(facets_from_STL, np):
-    def check_octant(filename):
-        triangles, normals = facets_from_STL(filename)
+def __(from_STL, np):
+    def check_octant(filename, verbose=True):
+        triangles, normals, _ = from_STL(filename)
         coords = np.reshape(triangles, (-1,))
-        return all(coords>=0.0)
+        ok = all(coords>=0)
+        if verbose:
+            if ok:
+                print("🟢 0% error")
+            else:
+                error = (coords<0).sum() / len(coords) * 100.0  
+                print(f"🔴 {error:.2f}% error")
+        return ok
     return (check_octant,)
 
 
@@ -385,12 +460,19 @@ def __(check_octant):
 
 
 @app.cell
-def __(facets_from_STL, np):
-    def check_ascending(filename):
-        triangles, normals = facets_from_STL(filename)
+def __(from_STL, np):
+    def check_ascending(filename, verbose=True):
+        triangles, normals, _ = from_STL(filename)
         z = triangles.mean(axis=1)[:,-1]
-        I = z.argsort()
-        return np.array_equal(triangles, triangles[I])
+        d = np.diff(z)
+        error_count = (d < 0).sum()
+        if verbose:
+            if error_count:
+                error = error_count / len(d) * 100.0  
+                print(f"🔴 {error:.2f}% error")
+            else:
+                print("🟢 0% error")
+        return not error_count
     return (check_ascending,)
 
 
@@ -401,51 +483,90 @@ def __(check_ascending):
 
 
 @app.cell
-def __(mo):
-    mo.md(r"""## STL Viewer""")
+def __(check_orientation):
+    check_orientation("data/square.stl")
     return
 
 
 @app.cell
-def __(Camera, Mesh, glm, meshio, mo, plt):
-    def show(
-        filename,
-        theta=0.0,
-        phi=0.0,
-        scale=1.0,
-        colormap="viridis",
-        edgecolors=(0, 0, 0, 0.25),
-        figsize=(6, 6),
-    ):
-        fig = plt.figure(figsize=figsize)
-        ax = fig.add_axes([0, 0, 1, 1], xlim=[-1, +1], ylim=[-1, +1], aspect=1)
-        ax.axis("off")
-        camera = Camera("ortho", theta=theta, phi=phi, scale=scale)
-        mesh = meshio.read(filename)
-        vertices = glm.fit_unit_cube(mesh.points)
-        faces = mesh.cells[0].data
-        vertices = glm.fit_unit_cube(vertices)
-        mesh = Mesh(
-            ax,
-            camera.transform,
-            vertices,
-            faces,
-            cmap=plt.get_cmap(colormap),
-            edgecolors=edgecolors,
-        )
-        return mo.center(fig)
-    return (show,)
+def __(check_shared_edges):
+    check_shared_edges("data/square.stl")
+    return
 
 
 @app.cell
-def __(show):
-    show("data/bunny.obj", scale=1.5)
+def __(check_octant):
+    check_octant("data/square.stl")
+    return
+
+
+@app.cell
+def __(check_ascending):
+    check_ascending("data/square.stl")
+    return
+
+
+@app.cell
+def __(
+    check_ascending,
+    check_octant,
+    check_orientation,
+    check_shared_edges,
+):
+    _cube = "data/cube.stl"
+    check_orientation(_cube)
+    check_shared_edges(_cube)
+    check_octant(_cube)
+    check_ascending(_cube)
     return
 
 
 @app.cell
 def __(mo):
-    mo.md("""## OBJ Format""")
+    mo.md(
+    rf"""
+    ## OBJ Format
+
+    The OBJ format is an alternative to the STL format that looks like this:
+
+    ```
+    # OBJ file format with ext .obj
+    # vertex count = 2503
+    # face count = 4968
+    v -3.4101800e-003 1.3031957e-001 2.1754370e-002
+    v -8.1719160e-002 1.5250145e-001 2.9656090e-002
+    v -3.0543480e-002 1.2477885e-001 1.0983400e-003
+    v -2.4901590e-002 1.1211138e-001 3.7560240e-002
+    v -1.8405680e-002 1.7843055e-001 -2.4219580e-002
+    ...
+    f 2187 2188 2194
+    f 2308 2315 2300
+    f 2407 2375 2362
+    f 2443 2420 2503
+    f 2420 2411 2503
+    ```
+
+    This content is an excerpt from the `data/bunny.obj` file.
+
+    """
+    )
+    return
+
+
+@app.cell
+def __(mo, show):
+    mo.show_code(show("data/bunny.obj", scale="1.5"))
+    return
+
+
+@app.cell
+def __(mo):
+    mo.md(
+        """
+        Study the specification of the OBJ format (search for suitable sources online),
+        then develop a `OBJ_to_STL` function that is rich enough to convert the OBJ bunny file into a STL bunny file.
+        """
+    )
     return
 
 
@@ -512,76 +633,31 @@ def __(OBJ_to_STL, show):
 
 @app.cell
 def __(mo):
-    mo.md(r"""## Constructive Solid Geometry (CSG)""")
-    return
-
-
-@app.cell
-def __(X, Y, Z, box, cylinder, sphere):
-    demo_csg = sphere(1) & box(1.5)
-    _c = cylinder(0.5)
-    demo_csg = demo_csg - (_c.orient(X) | _c.orient(Y) | _c.orient(Z))
-    demo_csg.save('output/demo-csg.stl', step=0.05)
-    return (demo_csg,)
-
-
-@app.cell
-def __(show):
-    show("output/demo-csg.stl", theta=45.0, phi=45.0, scale=1.0)
-    return
-
-
-@app.cell
-def __(box, cylinder, difference, intersection, orient, sphere, union):
-    demo_csg_alt = difference(
-        intersection(
-            sphere(1),
-            box(1.5),
-        ),
-        union(
-            orient(cylinder(0.5), [1.0, 0.0, 0.0]),
-            orient(cylinder(0.5), [0.0, 1.0, 0.0]),
-            orient(cylinder(0.5), [0.0, 0.0, 1.0]),
-        ),
-    )
-    demo_csg_alt.save("output/demo-csg-alt.stl", step=0.05)
-    return (demo_csg_alt,)
-
-
-@app.cell
-def __(show):
-    show("output/demo-csg-alt.stl", theta=45.0, phi=45.0, scale=1.0)
-    return
-
-
-@app.cell
-def __(mo):
     mo.md(
-        r"""
-        ## Binary STL
+        rf"""
+    ## Binary STL
 
-        - [ ] Discover that `out.stl` is not ASCII text, but binary
-        - [ ] Read about binary STL online
-        - [ ] Ask if there is anything useful in the first 80 bytes (header)
-        - [ ] Read the number of triangles `n` (hint to `numpy.fromfile`); check that works out.
-        - [ ] Check that the lenth of the binary data checks out with this count and the spec
-        - [ ] Read the numeric data as a `(n, 12)` array of `float32`
-        - [ ] Extract from this array the `normals` (shape `(n, 3)`) and `vertices` (shape `(n, 3, 3)`) arrays.
-        - [ ] At the end, measure the compression ratio offered by binary?
+    Since the STL ASCII format can lead to very large files when there is a large number of facets, there is an alternate, binary version of the STL format which is more compact.
+
+    Read about this variant online, then implement the function
+
+    ```python
+    def STL_binary_to_text(stl_filename_in, stl_filename_out):
+        pass  # 🚧 TODO!
+    ```
+
+    that will convert a binary STL file to a ASCII STL file. Make sure that your function works with the binary `data/dragon.stl` file which is an example of STL binary format.
+
+    💡 The `np.fromfile` function may come in handy.
+
         """
     )
     return
 
 
 @app.cell
-def __(show):
-    show("data/dragon.stl", theta=75.0, phi=-20.0, scale=1.7)
-    return
-
-
-@app.cell
-def __(mo):
-    mo.md("""TODO: STL binary to STL text; use it on teapot to get a reference text file (dragon is already in binary). Also ask for the opposite? (text to binary)""")
+def __(mo, show):
+    mo.show_code(show("data/dragon.stl", theta=75.0, phi=-20.0, scale=1.7))
     return
 
 
@@ -591,7 +667,6 @@ def __(make_STL, np):
         with open(stl_filename_in, mode="rb") as file:
             _ = file.read(80)
             n = np.fromfile(file, dtype=np.uint32, count=1)[0]
-            print(n)
             normals = []
             faces = []
             for i in range(n):
@@ -605,33 +680,83 @@ def __(make_STL, np):
 
 
 @app.cell
-def __(STL_binary_to_text, show):
+def __(STL_binary_to_text, mo, show):
     STL_binary_to_text("data/dragon.stl", "output/dragon.stl")
-    show("output/dragon.stl", theta=75.0, phi=-20.0, scale=1.7)
+    mo.show_code(show("output/dragon.stl", theta=75.0, phi=-20.0, scale=1.7))
     return
 
 
 @app.cell
 def __(mo):
+    mo.md(rf"""## Constructive Solid Geometry (CSG)
+
+    Have a look at the documentation of [{mo.icon("mdi:github")}fogleman/sdf](https://github.com/fogleman/) and study the basics. At the very least, make sure that you understand what the code below does:
+    """)
+
+    return
+
+
+@app.cell
+def __(X, Y, Z, box, cylinder, mo, show, sphere):
+    demo_csg = sphere(1) & box(1.5)
+    _c = cylinder(0.5)
+    demo_csg = demo_csg - (_c.orient(X) | _c.orient(Y) | _c.orient(Z))
+    demo_csg.save('output/demo-csg.stl', step=0.05)
+    mo.show_code(show("output/demo-csg.stl", theta=45.0, phi=45.0, scale=1.0))
+    return (demo_csg,)
+
+
+@app.cell
+def __(mo):
+    mo.md("""ℹ️ **Remark.** The same result can be achieved in a more procedural style, with:""")
+    return
+
+
+@app.cell
+def __(
+    box,
+    cylinder,
+    difference,
+    intersection,
+    mo,
+    orient,
+    show,
+    sphere,
+    union,
+):
+    demo_csg_alt = difference(
+        intersection(
+            sphere(1),
+            box(1.5),
+        ),
+        union(
+            orient(cylinder(0.5), [1.0, 0.0, 0.0]),
+            orient(cylinder(0.5), [0.0, 1.0, 0.0]),
+            orient(cylinder(0.5), [0.0, 0.0, 1.0]),
+        ),
+    )
+    demo_csg_alt.save("output/demo-csg-alt.stl", step=0.05)
+    mo.show_code(show("output/demo-csg-alt.stl", theta=45.0, phi=45.0, scale=1.0))
+    return (demo_csg_alt,)
+
+
+@app.cell
+def __(mo):
     mo.md(
-        r"""
-        ## JCAD
+        rf"""
+    ## JupyterCAD
 
-        - [ ] Get the basic (provided) box, sphere, (capped) cylinder jcad models and build a object for each of them.
-        - [ ] Automate the conversion with a jcad_to_sdf function that works for each of these primitives. Make sure that the function still works if you change the length/width/height parameters of the box, the radius of the sphere and the radius and
-        height of the cylinder.
-        - [ ] Improve your function so that it also supports the angle 1, 2 and 3 of the sphere and the angle of the cylinder. (Make it optional or get rid of this, we don't care)
-        - [ ] Extend your function so that all the placements parameters are also supported.
-        - [ ] Extend your function so that it can work with several primitive objects. You will keep in the sdf object only the (union of) the objects that are visible in the jcad model.
-        - [ ] Make your function work with complex models based on union, intersection and differences of primitive objects.
+    [JupyterCAD](https://github.com/jupytercad/JupyterCAD) is an extension of the Jupyter lab for 3D geometry modeling.
 
-        "Validation":
+      - Use it to create a JCAD model that correspond closely to the `output/demo_csg` model;
+    save it as `data/demo_jcad.jcad`.
 
-        - [ ] Reproduce the canonical CSG example with JCAD, save it as "data/csg.jcad"
-        - [ ] Output "the" (or the union of) the objects that are visible in the JCAD GUI
-        - [ ] ...
+      - Study the format used to represent JupyterCAD files (💡 you can explore the contents of the previous file, but you may need to create some simpler models to begin with).
 
-        TODO: present this upside down: start with the design of the canonical example in jcad, then work your way up in the conversion.
+      - When you are ready, create a `jcad_to_stl` function that understand enough of the JupyterCAD format to convert `"data/demo_jcad.jcad"` into some corresponding STL file.
+    (💡 do not tesselate the JupyterCAD model by yourself, instead use the `sdf` library!)
+
+
         """
     )
     return
@@ -639,7 +764,7 @@ def __(mo):
 
 @app.cell
 def __(np, sdf):
-    def flat_jcad_to_sdf(jcad):
+    def jcad_to_sdf(jcad):
         shapes = jcad["objects"]
         parts = {}
         for shape in shapes:
@@ -683,14 +808,14 @@ def __(np, sdf):
             if spec["visibility"] == True
         ]
         return sdf.union(*include_parts)
-    return (flat_jcad_to_sdf,)
+    return (jcad_to_sdf,)
 
 
 @app.cell
-def __(flat_jcad_to_sdf, json):
-    with open("data/jcad/csg.jcad", mode="rt", encoding='utf-8') as _file:
+def __(jcad_to_sdf, json):
+    with open("data/demo-jcad.jcad", mode="rt", encoding='utf-8') as _file:
         jcad_model = json.load(_file)
-    sdf_model = flat_jcad_to_sdf(jcad_model)
+    sdf_model = jcad_to_sdf(jcad_model)
     sdf_model.save("output/demo_jcad.stl", step=0.05)
     return jcad_model, sdf_model
 
@@ -708,8 +833,8 @@ def __(mo):
 
 
 @app.cell
-def __():
-    ### Dependencies
+def __(mo):
+    mo.md("""### Dependencies""")
     return
 
 
@@ -764,8 +889,101 @@ def __():
 
 
 @app.cell
+def __(Camera, Mesh, glm, meshio, mo, plt):
+    def show(
+        filename,
+        theta=0.0,
+        phi=0.0,
+        scale=1.0,
+        colormap="viridis",
+        edgecolors=(0, 0, 0, 0.25),
+        figsize=(6, 6),
+    ):
+        fig = plt.figure(figsize=figsize)
+        ax = fig.add_axes([0, 0, 1, 1], xlim=[-1, +1], ylim=[-1, +1], aspect=1)
+        ax.axis("off")
+        camera = Camera("ortho", theta=theta, phi=phi, scale=scale)
+        mesh = meshio.read(filename)
+        vertices = glm.fit_unit_cube(mesh.points)
+        faces = mesh.cells[0].data
+        vertices = glm.fit_unit_cube(vertices)
+        mesh = Mesh(
+            ax,
+            camera.transform,
+            vertices,
+            faces,
+            cmap=plt.get_cmap(colormap),
+            edgecolors=edgecolors,
+        )
+        return mo.center(fig)
+    return (show,)
+
+
+@app.cell
 def __(mo):
-    mo.md("""## Sandbox""")
+    mo.md(r"""### STL Viewer""")
+    return
+
+
+@app.cell
+def __(show):
+    show("data/teapot.stl", theta=45.0, phi=30.0, scale=2)
+    return
+
+
+@app.cell
+def __(mo):
+    mo.md("""### Sandbox""")
+    return
+
+
+@app.cell
+def __(make_STL, np):
+    square_triangles = np.array(
+        [
+            [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]],
+            [[1.0, 1.0, 0.0], [0.0, 1.0, 0.0], [1.0, 0.0, 0.0]],
+        ],
+        dtype=np.float32,
+    )
+
+    square_stl = make_STL(square_triangles, name="square")
+    print(square_stl)
+    with open("data/square.stl", mode="wt", encoding="us-ascii") as _file:
+        _file.write(square_stl)
+    return square_stl, square_triangles
+
+
+@app.cell
+def __(make_STL, np):
+    _h = np.sqrt(2)/2
+
+    pyramid_triangles = np.array(
+        [
+            [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.5, 0.5, _h]],
+            [[1.0, 0.0, 0.0], [1.0, 1.0, 0.0], [0.5, 0.5, _h]],
+            [[1.0, 1.0, 0.0], [0.0, 1.0, 0.0], [0.5, 0.5, _h]],
+            [[0.0, 1.0, 0.0], [0.0, 0.0, 0.0], [0.5, 0.5, _h]],
+        ],
+        dtype=np.float32,
+    )
+
+    pyramid = "data/pyramid.stl"
+
+    with open(pyramid, mode="tw", encoding="utf-8") as _file:
+        _file.write(make_STL(pyramid_triangles, name="pyramid"))
+    return pyramid, pyramid_triangles
+
+
+@app.cell
+def __(pyramid, show):
+    show(pyramid, theta=60.0, phi=30.0, scale=1.2)
+    return
+
+
+@app.cell
+def __(pyramid):
+    open(pyramid, mode="rt", encoding="us-ascii").read()
     return
 
 
@@ -810,7 +1028,7 @@ def __(make_STL, np):
     cube = "output/cube.stl"
 
     with open(cube, mode="tw", encoding="utf-8") as _file:
-        _file.write(make_STL(cube_triangles, cube_normals))
+        _file.write(make_STL(cube_triangles, cube_normals, name="cube"))
     return cube, cube_normals, cube_triangles
 
 
