@@ -359,7 +359,7 @@ def __(mo):
           - **Positive octant rule.** All vertex coordinates are non-negative.
 
           - **Orientation rule.** All normals are (approximately) unit vectors and follow the [{mo.icon("mdi:wikipedia")} right-hand rule](https://en.wikipedia.org/wiki/Right-hand_rule).
-        
+
           - **Shared edge rule.** Each triangle edge appears exactly twice.
 
           - **Ascending rule.** the z-coordinates of (the barycenter of) each triangle are a non-decreasing sequence.
@@ -692,7 +692,6 @@ def __(mo):
 
     Have a look at the documentation of [{mo.icon("mdi:github")}fogleman/sdf](https://github.com/fogleman/) and study the basics. At the very least, make sure that you understand what the code below does:
     """)
-
     return
 
 
@@ -813,16 +812,16 @@ def __(np, sdf):
 
 @app.cell
 def __(jcad_to_sdf, json):
-    with open("data/demo-jcad.jcad", mode="rt", encoding='utf-8') as _file:
+    with open("data/demo-csg.jcad", mode="rt", encoding='utf-8') as _file:
         jcad_model = json.load(_file)
     sdf_model = jcad_to_sdf(jcad_model)
-    sdf_model.save("output/demo_jcad.stl", step=0.05)
+    sdf_model.save("output/demo-csg.stl", step=0.05)
     return jcad_model, sdf_model
 
 
 @app.cell
 def __(show):
-    show("output/demo_jcad.stl", theta=45.0, phi=45.0)
+    show("output/demo-csg.stl", theta=45.0, phi=45.0)
     return
 
 
